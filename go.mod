@@ -1,5 +1,5 @@
-module github.com/libdns/acmedns
+module github.com/tbocek/acmedns
 
-go 1.17
+go 1.24
 
-require github.com/libdns/libdns v0.2.1
+require github.com/libdns/libdns v0.2.3

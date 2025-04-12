@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -66,7 +67,7 @@ func (p *Provider) selectAccount(zone string, name string) (*account, error) {
 		}
 		config, found := p.Configs[domain]
 		if !found {
-			return nil, fmt.Errorf("Config for domain %s not found", domain)
+			return nil, fmt.Errorf("config for domain %s not found", domain)
 		}
 		acc := account{
 			Username:  config.Username,
@@ -107,24 +108,34 @@ func updateTxtValue(acc account, value string) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("Error while marshalling JSON: %w", err)
+		return fmt.Errorf("error while marshalling JSON: %w", err)
 	}
+
 	req, err := http.NewRequest("POST", acc.ServerURL+"/update", bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("error creating new POST /update: %w", err)
+	}
+
 	req.Header.Set("X-Api-User", acc.Username)
 	req.Header.Set("X-Api-Key", acc.Password)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: time.Second * 30}
+
+	log.Printf("Executing request: %s %s", req.Method, req.URL.String())
+	log.Printf("Request headers: %v", req.Header)
+	log.Printf("Request body: %s", string(body))
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error while reading response: %w", err)
+		return fmt.Errorf("error while reading response: %w", err)
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Updating ACME-DNS record resulted in response code %d", resp.StatusCode)
+		return fmt.Errorf("updating ACME-DNS record resulted in response code %d", resp.StatusCode)
 	}
 	return nil
 }
 
-// Implements libdns.RecordAppender.
+// AppendRecords Implements libdns.RecordAppender.
 //
 // The only operation Joohoi's ACME-DNS API supports is a rolling update
 // of two TXT records.
@@ -159,8 +170,6 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns
 	return appendedRecords, nil
 }
 
-// Implements libdns.RecordDeleter.
-//
 // DeleteRecords does nothing at all - ACME-DNS does not support record deletion.
 // However, older records are automatically deleted as newer records are added
 // (a rolling update of two records).
