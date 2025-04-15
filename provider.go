@@ -121,9 +121,9 @@ func updateTxtValue(acc account, value string) error {
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: time.Second * 30}
 
-	log.Printf("Executing request: %s %s", req.Method, req.URL.String())
-	log.Printf("Request headers: %v", req.Header)
-	log.Printf("Request body: %s", string(body))
+	fmt.Errorf("Executing request: %s %s", req.Method, req.URL.String())
+	fmt.Errorf("Request headers: %v", req.Header)
+	fmt.Errorf("Request body: %s", string(body))
 
 	resp, err := client.Do(req)
 	if err != nil {
