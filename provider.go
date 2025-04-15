@@ -131,7 +131,7 @@ func updateTxtValue(acc account, value string) error {
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("updating ACME-DNS record resulted in response code %d", resp.StatusCode)
 	}
-	return nil
+	return fmt.Errorf("22Executing request: %s %s", req.Method, req.URL.String())
 }
 
 // AppendRecords Implements libdns.RecordAppender.
